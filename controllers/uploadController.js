@@ -48,3 +48,42 @@ export const getUploads = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+
+export const deleteUpload = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the upload document by ID
+    const upload = await Upload.findById(id);
+    if (!upload) return res.status(404).json({ message: "Upload not found" });
+
+    // Extract public_id from Cloudinary URL
+    const extractPublicId = (url) => {
+      // This regex extracts the public_id from the URL
+      const regex = /upload\/(?:v\d+\/)?([^\.]+)\./;
+      const match = url.match(regex);
+      return match ? match[1] : null;
+    };
+
+    const publicId = extractPublicId(upload.thumbnailUrl);
+    if (publicId) {
+      try {
+        // Delete the image from Cloudinary
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.warn("Failed to delete image from Cloudinary:", err);
+      }
+    }
+
+    // Delete the upload document from MongoDB
+    await Upload.findByIdAndDelete(id);
+
+    res.json({ message: "Upload and image deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error deleting upload" });
+  }
+};
+
