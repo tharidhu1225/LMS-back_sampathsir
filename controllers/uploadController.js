@@ -1,4 +1,3 @@
-// controllers/uploadController.js
 import cloudinary from "../Config/cloudinary.js";
 import Upload from "../models/Upload.js";
 
@@ -6,27 +5,36 @@ import Upload from "../models/Upload.js";
 export const createUpload = async (req, res) => {
   try {
     const { title, description, fileUrl } = req.body;
+    const file = req.file;
 
-    // Upload image to Cloudinary
-    const cloudinaryResult = await cloudinary.uploader.upload_stream(
-      { folder: "uploads" },
-      async (error, result) => {
-        if (error) return res.status(500).json({ error });
+    if (!file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
 
-        const newUpload = new Upload({
-          title,
-          description,
-          fileUrl,
-          thumbnailUrl: result.secure_url,
-        });
+    // Upload to Cloudinary using buffer
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "uploads" },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+      stream.end(file.buffer); // send the buffer to cloudinary
+    });
 
-        await newUpload.save();
-        res.status(201).json(newUpload);
-      }
-    );
+    // Save to MongoDB
+    const newUpload = new Upload({
+      title,
+      description,
+      fileUrl,
+      thumbnailUrl: result.secure_url,
+    });
 
-    req.pipe(cloudinaryResult);
+    await newUpload.save();
+    res.status(201).json(newUpload);
   } catch (err) {
+    console.error("Cloudinary upload error:", err);
     res.status(500).json({ message: err.message });
   }
 };
