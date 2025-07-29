@@ -6,6 +6,7 @@ import cors from "cors";
 import Adminrouter from "./routes/adminRoutess.js";
 import bookRouter from "./routes/bookRouter.js";
 import paperRouter from "./routes/paperRoutes.js";
+import uploadRouter from "./routes/uploadRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use("/api/admin", Adminrouter);
 app.use("/api/books", bookRouter);
 app.use("/api/paper", paperRouter);
+app.use("/api/upload", uploadRouter);
 
 // MongoDB Connect and Server Start
 mongoose
