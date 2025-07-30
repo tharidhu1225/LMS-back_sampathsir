@@ -7,6 +7,7 @@ import Adminrouter from "./routes/adminRoutess.js";
 import bookRouter from "./routes/bookRouter.js";
 import paperRouter from "./routes/paperRoutes.js";
 import uploadRouter from "./routes/uploadRoutes.js";
+import galleryRouter from "./routes/galleryRouter.js";
 
 dotenv.config();
 const app = express();
@@ -21,6 +22,7 @@ app.use("/api/admin", Adminrouter);
 app.use("/api/books", bookRouter);
 app.use("/api/paper", paperRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/gallery", galleryRouter);
 
 // MongoDB Connect and Server Start
 mongoose
